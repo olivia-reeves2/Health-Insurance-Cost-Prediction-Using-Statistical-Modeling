@@ -1,0 +1,375 @@
+---
+title: "Health Insurance Cost Prediction Using Statistical Modeling"
+author: "Olivia Reeves"
+date: "2025-12-12"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+# read the readxl library
+library(readxl)
+# importing the data set and naming insurance
+insurance <- read_excel("D:/insurance.xlsx")
+```
+
+In this project, I plan to research health insurance data in the United States to predict the medical charges an insured person might incur based on several demographic and lifestyle factors. I chose this topic to research relevant data to my career field as an actuarial science major. By analyzing and understanding the expected medical costs of each client actuaries can set appropriate rates. This insight is fundamental to the functionality of the insurance system.  
+
+## Section 1: Exploratory Data Analysis
+
+This section explores the structure and key characteristics of the health insurance dataset. The goal is to understand each variable before building predictive models for medical charges.
+
+```{r}
+head(insurance)
+```
+
+```{r}
+# structure of insurance
+str(insurance)
+```
+The dataset contains 1,338 observations and 7 variables. Among these, 4 variables are numeric and 3 are categorical (character type prior to conversion). These variables represent demographic and lifestyle factors that may influence individual medical insurance charges.
+
+To prepare the dataset for analysis, categorical variables are converted into factors for proper handling in statistical modeling.
+
+```{r}
+insurance$sex <- as.factor(insurance$sex)
+insurance$smoker <- as.factor(insurance$smoker)
+insurance$smoker <- as.factor(insurance$smoker)
+```
+
+##### Description of the variables:
+
+- **Age**: Age of the primary beneficiary (numeric)
+- **Sex**: Gender of the primary beneficiary (male or female; factor)
+- **BMI**: Body mass index of the primary beneficiary (numeric)
+- **Children**: Number of dependents covered by insurance (numeric)
+- **Smoker**: Smoking status of the beneficiary (yes or no; factor)
+- **Region**: U.S. residential region of the beneficiary (northeast, northwest, southeast, southwest; factor)
+- **Charges**: Individual medical costs billed by health insurance (numeric)
+
+## Section 2: Univariate Analysis
+
+This section examines each variable individually to understand its distribution, central tendency, and variability. The goal is to identify patterns, potential outliers, and general characteristics of the dataset before analyzing relationships between variables or building predictive models for insurance charges.
+
+#### Age:
+
+```{r}
+# summarizing age numerically
+range(insurance$age)
+mean(insurance$age)
+median(insurance$age)
+sd(insurance$age)
+```
+The age variable is summarized using measures of central tendency and spread. The age of insured individuals ranges from 18 to 64, with a mean of 39.21 and a median of 39. The closeness of the mean and median suggests a relatively balanced distribution with no significant skew. The standard deviation of 14.05 indicates moderate variability in the ages of policyholders.
+
+```{r}
+# histogram and density plot of age
+hist(insurance$age,
+     main = "Histogram and Density Plot of Age",
+     prob = TRUE,
+     xlab = "Age",
+     ylab = "Probability")
+lines(density(insurance$age),
+      col = "red",
+      lwd = 2)
+```
+
+The distribution of age is visualized using a histogram with an overlaid density curve. The plot shows that the dataset is fairly evenly distributed across adult age groups, with a slightly higher concentration of younger individuals and a gradual decline in older age groups.
+
+#### Sex:
+
+```{r}
+# frequency table of sex
+table(insurance$sex)
+```
+The frequency distribution of the sex variable shows a nearly even split between males (676) and females (662), indicating a balanced representation in the dataset.
+
+```{r}
+# mode  of sex
+names(sort(-table(insurance$sex)))
+```
+
+The mode of the sex variable is “male,” although the difference between the two categories is minimal.
+
+```{r}
+# proportion table of sex 
+prop.table(table(insurance$sex))
+```
+The proportion table confirms this balance, with approximately 50.5% male and 49.5% female policyholders.
+
+### BMI
+
+```{r}
+summary(insurance$bmi)
+sd(insurance$bmi)
+```
+The BMI variable ranges from 15.96 to 53.13, indicating that the dataset includes individuals from underweight to severely obese categories. The mean BMI is 30.66 and the median is 30.4, which are very close, suggesting an approximately symmetric distribution. The standard deviation of 6.10 indicates moderate variability across individuals.
+
+```{r}
+hist(insurance$bmi,
+     main = "BMI Distribution",
+     prob = TRUE,
+     xlab = "BMI",
+     ylab = "Probability")
+lines(density(insurance$bmi),
+      col = "red",
+      lwd = 2)
+```
+
+The histogram shows that BMI is approximately normally distributed, centered around 30, with most observations concentrated in the overweight to obese range.
+
+### Children
+
+```{r}
+summary(insurance$children)
+sd(insurance$children)
+table(insurance$children)
+```
+The number of children ranges from 0 to 5, with no extreme outliers. The mean is 1.09 and the median is 1, indicating a slightly right-skewed distribution. The standard deviation of 1.21 suggests that most policyholders have between 0 and 3 dependents.
+
+```{r}
+hist(insurance$children,
+     main = "Distribution of Number of Children",
+     xlab = "Number of Children",
+     ylab = "Frequency")
+```
+
+The distribution is right-skewed, with the highest frequency at 0 children and progressively fewer observations as the number of children increases.
+
+### Smoker
+
+```{r}
+table(insurance$smoker)
+```
+The dataset contains 1,064 non-smokers and 274 smokers, showing that the majority of policyholders do not smoke.
+
+```{r}
+names(sort(-table(insurance$smoker)))
+```
+The mode of the smoker variable is “no,” confirming that non-smokers are the dominant group in the dataset.
+
+```{r}
+prop.table(table(insurance$smoker))
+```
+Approximately 79.5% of policyholders are non-smokers, while 20.5% are smokers.
+
+### Region
+
+```{r}
+table(insurance$region)
+```
+The region variable is relatively evenly distributed across the four U.S. regions, with a slight concentration in the southeast.
+
+```{r}
+names(sort(-table(insurance$region)))
+```
+The mode of the region variable is “southeast,” indicating it has the highest number of policyholders.
+
+```{r}
+prop.table(table(insurance$region))
+```
+The proportion table confirms a fairly balanced distribution across regions, with the southeast having the largest share of policyholders.
+
+### Charges
+
+```{r}
+summary(insurance$charges)
+sd(insurance$charges)
+```
+Medical charges range from 1,121 to 63,770, showing a wide spread in healthcare costs. The mean charge (13,270) is significantly higher than the median (9,382), indicating a right-skewed distribution driven by high-cost outliers. The standard deviation of 12,110.01 reflects substantial variability in medical expenses.
+
+```{r}
+hist(insurance$charges,
+     main = "Distribution of Medical Charges",
+     prob = TRUE,
+     xlab = "Charges",
+     ylab = "Probability")
+lines(density(insurance$charges),
+      col = "red",
+      lwd = 2)
+```
+
+The distribution of charges is strongly right-skewed, with most individuals incurring relatively low to moderate costs, while a smaller number of policyholders incur very high medical expenses.
+
+
+## Section 3: Bivariate Analysis
+
+This section explores relationships between pairs of variables to identify potential associations that may influence medical insurance charges. The focus is on understanding correlations and interactions between demographic and lifestyle factors.
+
+### Age Against Charges:
+
+```{r}
+cor(insurance$age, insurance$charges)
+```
+The correlation coefficient between age and charges is approximately 0.30, indicating a weak to moderate positive relationship. This suggests that medical charges tend to increase with age, although age alone does not strongly explain variation in charges.
+```{r}
+plot(insurance$age, insurance$charges,
+     main = "Scatter Plot of Age Against Charges",
+     xlab = "Age",
+     ylab = "Charges",
+     col = "darkgreen",
+     pch = 19,
+     cex = 0.5)
+abline(lm(charges ~ age, data = insurance),
+       lwd = 2, col = "red")
+```
+
+The scatter plot confirms a positive relationship between age and medical charges. The fitted regression line shows an upward trend, indicating that older individuals tend to incur higher medical costs on average.
+
+### Sex Against Smoker:
+
+```{r}
+tbl.sex <- xtabs(~ sex + smoker, data = insurance)
+tbl.sex
+```
+This contingency table summarizes the relationship between sex and smoking status. 
+
+```{r}
+prop.table(tbl.sex, margin = 1)
+```
+The proportion table shows conditional probabilities within each gender. Approximately 17% of females are smokers compared to about 24% of males, indicating that smoking rates are slightly higher among males.
+
+```{r}
+barplot(tbl.sex,
+        main = "Gender Distribution by Smoker Status",
+        col = c("red", "blue"),
+        legend = rownames(tbl.sex),
+        beside = TRUE)
+```
+
+The bar plot illustrates that smoking and non-smoking proportions are relatively similar across genders, with only a slight increase in smoking prevalence among males.
+
+### Sex Against BMI:
+
+```{r}
+by(insurance$bmi, insurance$sex, summary)
+```
+This summary compares BMI distributions between males and females using five-number summaries. The results indicate that BMI distributions are very similar across genders, with only minor differences in central tendency and spread.
+
+```{r}
+boxplot(bmi ~ sex, data = insurance,
+        notch = TRUE,
+        col = c("pink", "blue"),
+        main = "BMI by Gender",
+        xlab = "Gender",
+        ylab = "BMI")
+```
+
+The boxplot confirms that BMI distributions for males and females are nearly identical. While males show slightly higher variability and a few higher outliers, the overall distributions are very similar across genders.
+
+## Section 4: Statistical Modeling using Simple Linear Regression
+
+This section applies simple linear regression models to examine how individual predictors (age and smoker status) influence medical insurance charges. The goal is to quantify these relationships and assess their predictive usefulness.
+
+
+### Model 1:
+```{r}
+charge.model <- lm(charges ~ age, data = insurance)
+coef(charge.model)
+```
+A simple linear regression model is used to predict medical charges based on age. The resulting model is:
+
+<p align="center"> charges=3165.8850+257.7226×(age) </p>
+
+This indicates that, on average, medical charges increase by approximately $257.72 for each additional year of age.
+
+To demonstrate prediction using the model, the estimated charges for a 60-year-old individual are calculated below:
+```{r}
+charge_a60 <- 3165.8850 + 257.7226*60
+charge_a60
+```
+The predicted medical charge for a 60-year-old policyholder is approximately $18,629.24, based on age alone.
+
+### Model 2:
+```{r}
+charge.model2 <- lm(charges ~ smoker, data = insurance)
+coef(charge.model2)
+```
+A second regression model is used to evaluate the impact of smoking status on medical charges. The model produces two predicted averages based on group membership:
+
+- Non-smoker: approximately $8,434.27
+- Smoker: approximately $32,050.23
+
+This results in an estimated difference of about $23,615 in medical charges between smokers and non-smokers.
+
+These results indicate that smoking status is a significantly stronger predictor of medical costs compared to age alone.
+ 
+### Comparing Models
+
+```{r}
+summary(charge.model)
+```
+In the first model (charges ~ age), age is statistically significant at the 0.001 level, indicating that it is a meaningful predictor of medical charges. However, the model has a relatively low R-squared value (approximately 0.09), meaning that age alone explains only about 9% of the variation in medical charges. This suggests that while age has an effect, it is not a strong standalone predictor.
+
+```{r}
+summary(charge.model2)
+```
+The second model (charges ~ smoker) shows a much stronger relationship. Smoking status is highly statistically significant, and the model explains a substantially larger portion of the variability in charges compared to age. This indicates that smoker status is a much stronger predictor of medical costs than age alone.
+
+To compare the model I will evaluate the adjusted R squared values. 
+- Model 1: 9%
+- Model 2: 62%
+
+## Section 5: Multiple Linear Regression Model Building and Selection
+
+In this section, multiple linear regression models are developed to predict medical insurance charges. Model performance is evaluated using statistical significance, adjusted R-squared, AIC, and interpretability. The goal is to identify a model that balances predictive accuracy with actuarial interpretability.
+
+### 1. Full Baseline Model
+```{r}
+full_model <- lm(charges ~ age + sex + bmi + children + smoker + region,
+                 data = insurance)
+summary(full_model)
+```
+The baseline multiple linear regression model includes all available predictors to explain variation in medical insurance charges.
+
+The model is statistically significant overall (F-statistic p-value < 2.2e-16), indicating that at least one predictor meaningfully contributes to explaining charges. The model achieves an R-squared of approximately 0.749, meaning that about 75% of the variation in medical charges is explained by the included variables.
+
+### 2. Refined Main Effects Model
+```{r}
+model_1 <- lm(charges ~ age + bmi + children + smoker,
+              data = insurance)
+summary(model_1)
+```
+This model refines the previous full model by removing sex and region, focusing on the most influential predictors of medical charges.
+
+The model remains highly statistically significant overall (F-statistic p-value < 2.2e-16) and achieves an adjusted R-squared of approximately 0.749, indicating that it explains about 75% of the variation in medical charges. This is nearly identical to the full model, suggesting that the removed variables contribute little additional explanatory power.
+
+
+### 3. Interaction Model
+```{r}
+model_2 <- lm(charges ~ age + bmi * smoker + children,
+              data = insurance)
+summary(model_2)
+```
+This model extends the previous specification by introducing an interaction term between BMI and smoking status. This allows the effect of BMI on medical charges to differ depending on whether an individual is a smoker or non-smoker, which reflects a more realistic insurance risk structure.
+
+The model is highly statistically significant overall (p-value < 2.2e-16) and achieves an adjusted R-squared of approximately 0.838, indicating that about 84% of the variation in medical charges is explained by the model. This represents a substantial improvement over both previous models.
+
+### 4. Model Comparison
+```{r}
+summary(full_model)$adj.r.squared
+summary(model_1)$adj.r.squared
+summary(model_2)$adj.r.squared
+```
+The adjusted R-squared values for the final candidate models are:
+
+- Full model (all predictors): 0.7494  
+- Refined main effects model: 0.7489  
+- Interaction model: 0.8382  
+
+The full model and refined model have nearly identical adjusted R-squared values (~0.749), indicating that removing non-significant variables (such as sex and region) does not meaningfully reduce model performance. This suggests that these variables contribute little additional explanatory power for predicting medical charges.
+
+In contrast, the interaction model shows a substantial improvement, with an adjusted R-squared of approximately 0.838. This indicates that the model explains about 84% of the variation in medical charges, representing a significant improvement in predictive accuracy.
+
+The increase in explanatory power demonstrates that incorporating the interaction between BMI and smoking status captures important nonlinear relationships in the data that are not accounted for in simpler linear models. This suggests that insurance costs are not purely additive across risk factors, but instead depend on interactions between lifestyle variables.
+
+## Section 7: Conclusion
+
+This project analyzed health insurance data to understand the key factors influencing individual medical charges and to develop predictive models using multiple linear regression.
+
+Exploratory analysis showed that variables such as age, BMI, smoking status, and number of children exhibit meaningful variation and potential relationships with medical charges. Among these, smoking status and BMI were identified as particularly important drivers of cost.
+
+Three regression models were developed and compared: a full model with all predictors, a simplified model with selected variables, and an interaction model incorporating BMI and smoking status. While the full and refined models both explained approximately 75% of the variation in medical charges, the interaction model significantly improved predictive performance, explaining approximately 84% of the variation.
+
+The results indicate that smoking status is the strongest predictor of medical charges, and its interaction with BMI plays a critical role in determining cost levels. This suggests that health insurance pricing is not purely additive, but instead depends on interactions between key lifestyle risk factors.
+
+Overall, the interaction model provides the best balance of predictive accuracy and interpretability. These findings are consistent with actuarial principles, where risk factors such as smoking and obesity jointly influence expected healthcare costs and are essential for pricing insurance policies effectively.
