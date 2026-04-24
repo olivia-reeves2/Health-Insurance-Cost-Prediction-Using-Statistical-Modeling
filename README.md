@@ -1,10 +1,10 @@
-## 📊 Project Overview
+## Project Overview
 
 This project analyzes the Medical Insurance dataset to model and predict individual healthcare charges using statistical learning techniques in R.
 
 The goal is to identify key drivers of insurance costs and evaluate how interactions between variables (especially BMI and smoking status) improve predictive accuracy.
 
-## 📁 Methods Used
+## Methods Used
 
 - Exploratory Data Analysis (EDA)
 - Data visualization (histograms, boxplots, scatterplots)
@@ -13,7 +13,7 @@ The goal is to identify key drivers of insurance costs and evaluate how interact
 - Interaction modeling (BMI × Smoker)
 - Model comparison using Adjusted R²
 
-## 📈 Final Model
+## Final Model
 
 The best-performing model was:
 
